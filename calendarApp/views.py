@@ -7,7 +7,8 @@ config = Config()
 
 def index(request):
     message = config.FLOW['message']
-    context = {'a': message[47:80], 'code': message[100:109]}
+    print(message)
+    context = {'link': message[47:80], 'code': message[100:109]}
     return render(request, 'index.html', context)
 
 
@@ -26,7 +27,7 @@ def GetCalendarThisWeak(headers):
     start_datatime = now - timedelta(days=weak_day)
     end_datetime = now + timedelta(days=7 - weak_day)
     response = requests.get(
-        f"https://graph.microsoft.com/v1.0/me/calendarview?startdatetime={start_datatime.isoformat()}&enddatetime={end_datetime.isoformat()}&timezone=Asia/Yekaterinburg",
+        f"https://graph.microsoft.com/v1.0/me/calendarview?startdatetime={start_datatime.isoformat()}&enddatetime={end_datetime.isoformat()}",
         headers=headers)
     output = GetOutputJSON(response.json(), start_datatime)
     return output
