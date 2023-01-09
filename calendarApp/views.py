@@ -2,6 +2,7 @@ from django.shortcuts import render
 from datetime import datetime, timedelta
 import requests
 from .models import Config, Calendars
+
 config = Config()
 calendars = Calendars()
 
@@ -20,7 +21,10 @@ def calendar(request):
         config.ACCESS_TOKEN = app.acquire_token_by_device_flow(flow=flow)['access_token']
         GetAllCalendars({'Authorization': 'Bearer ' + config.ACCESS_TOKEN})
 
-    context = GetCalendarThisWeak({'Authorization': 'Bearer ' + config.ACCESS_TOKEN, 'Prefer': 'outlook.timezone="Asia/Yekaterinburg"'})
+    context = GetCalendarThisWeak({
+        'Authorization': 'Bearer ' + config.ACCESS_TOKEN,
+        'Prefer': 'outlook.timezone="Asia/Yekaterinburg"'}
+    )
     return render(request, 'calendar.html', context)
 
 
