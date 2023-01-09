@@ -1,35 +1,35 @@
 from django.shortcuts import render
 from datetime import datetime, timedelta
-from msal import PublicClientApplication
-from .models import Config
 import requests
+from .models import Config
+config = Config()
 
 
 def index(request):
-    config = Config()
-    app = PublicClientApplication(
-        client_id=config.CLIENT_ID,
-        authority=config.AUTHORITY
-    )
-    flow = app.initiate_device_flow(scopes=config.SCOPE)
-    context = {'a': flow['message'][47:80], 'code': flow['message'][100:109]}
-
-    result = app.acquire_token_by_device_flow(flow=flow)
-    access_token_id = result['access_token']
-    headers = {'Authorization': 'Bearer ' + access_token_id}
-
+    message = config.FLOW['message']
+    context = {'a': message[47:80], 'code': message[100:109]}
     return render(request, 'index.html', context)
+
+
+def calendar(request):
+    app = config.APP
+    flow = config.FLOW
+    access_token = app.acquire_token_by_device_flow(flow=flow)['access_token']
+    headers = {'Authorization': 'Bearer ' + access_token}
+    context = GetCalendarThisWeak(headers)
+    return render(request, 'calendar.html', context)
 
 
 def GetCalendarThisWeak(headers):
     now = datetime.fromordinal(datetime.now().toordinal())
     weak_day = datetime.weekday(now)
     start_datatime = now - timedelta(days=weak_day)
-    end_datetime = now + timedelta(days=7-weak_day)
-    response = requests.get(f"https://graph.microsoft.com/v1.0/me/calendarview?startdatetime={start_datatime.isoformat()}&enddatetime={end_datetime.isoformat()}&timezone=Asia/Yekaterinburg", headers=headers)
-    print(response)
-    calendar = GetOutputJSON(response.json(), start_datatime)
-    return calendar
+    end_datetime = now + timedelta(days=7 - weak_day)
+    response = requests.get(
+        f"https://graph.microsoft.com/v1.0/me/calendarview?startdatetime={start_datatime.isoformat()}&enddatetime={end_datetime.isoformat()}&timezone=Asia/Yekaterinburg",
+        headers=headers)
+    output = GetOutputJSON(response.json(), start_datatime)
+    return output
 
 
 def GetOutputJSON(content, start_datatime):

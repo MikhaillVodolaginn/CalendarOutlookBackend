@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from calendarApp.views import index
+from calendarApp.views import index, calendar
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", index)
+    path("", index),
+    path("calendar/", calendar)
 ]
