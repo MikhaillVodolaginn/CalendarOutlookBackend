@@ -13,10 +13,12 @@ def index(request):
 
 
 def calendar(request):
-    app = config.APP
-    flow = config.FLOW
-    access_token = app.acquire_token_by_device_flow(flow=flow)['access_token']
-    headers = {'Authorization': 'Bearer ' + access_token}
+    if config.ACCESS_TOKEN == '':
+        app = config.APP
+        flow = config.FLOW
+        config.ACCESS_TOKEN = app.acquire_token_by_device_flow(flow=flow)['access_token']
+
+    headers = {'Authorization': 'Bearer ' + config.ACCESS_TOKEN}
     context = GetCalendarThisWeak(headers)
     return render(request, 'calendar.html', context)
 

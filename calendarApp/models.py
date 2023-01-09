@@ -10,3 +10,4 @@ class Config:
     SCOPE = ['User.Read', 'Calendars.ReadWrite']
     APP = PublicClientApplication(client_id=CLIENT_ID, authority=AUTHORITY)
     FLOW = APP.initiate_device_flow(scopes=SCOPE)
+    ACCESS_TOKEN = ''
