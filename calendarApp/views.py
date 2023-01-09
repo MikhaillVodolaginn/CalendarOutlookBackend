@@ -1,24 +1,24 @@
-from django.http import HttpResponse
+from django.shortcuts import render
 from datetime import datetime, timedelta
 from msal import PublicClientApplication
-from myApp import config
+from .models import Config
 import requests
 
 
 def index(request):
+    config = Config()
     app = PublicClientApplication(
         client_id=config.CLIENT_ID,
         authority=config.AUTHORITY
     )
     flow = app.initiate_device_flow(scopes=config.SCOPE)
-    print(flow['message'])
+    context = {'a': flow['message'][47:80], 'code': flow['message'][100:109]}
 
     result = app.acquire_token_by_device_flow(flow=flow)
     access_token_id = result['access_token']
     headers = {'Authorization': 'Bearer ' + access_token_id}
-    print(GetCalendarThisWeak(headers))
 
-    return HttpResponse(flow['message'])
+    return render(request, 'index.html', context)
 
 
 def GetCalendarThisWeak(headers):
