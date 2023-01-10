@@ -13,7 +13,6 @@ class Login(APIView):
     def get(request):
         if config.ACCESS_TOKEN == '':
             message = config.FLOW['message']
-            print(message)
             return Response({'hasToken': 'false', 'link': message[47:80], 'code': message[100:109]})
         return Response({'hasToken': 'true'})
 
@@ -58,7 +57,6 @@ def GetCalendar(room):
 
 def GetAllCalendars(headers):
     response = requests.get(f"https://graph.microsoft.com/v1.0/me/calendars", headers=headers)
-    print(response.ok)
     for item in response.json()["value"]:
         if item["name"] == calendars.orange['name']:
             calendars.orange["id"] = item["id"]
@@ -79,7 +77,6 @@ def GetCalendarThisWeak(headers, room=calendars.orange):
     response = requests.get(
         f"https://graph.microsoft.com/v1.0/me/calendars/{room_id}/calendarView?startdatetime={start_datatime.isoformat()}&enddatetime={end_datetime.isoformat()}",
         headers=headers)
-    print(response.ok)
     return GetOutputDict(response.json(), start_datatime, room)
 
 
@@ -89,7 +86,6 @@ def GetOutputDict(content, start_datatime, room):
         current_day = start_datatime + timedelta(days=i)
         current_day_str = str(current_day).partition(' ')[0]
         meetings = []
-        print(content)
         for value in content["value"]:
             current_start = value["start"]["dateTime"].partition('T')
             current_start_day = current_start[0]
@@ -112,5 +108,4 @@ def GetOutputDict(content, start_datatime, room):
                 })
         current_day_obj = {"date": current_day_str, "meetings": meetings}
         output_dict["calendar"].append(current_day_obj)
-    print(output_dict)
     return output_dict
