@@ -1,5 +1,6 @@
-from django.shortcuts import render
 from datetime import datetime, timedelta
+from rest_framework.response import Response
+from rest_framework.views import APIView
 import requests
 from .models import Config, Calendars
 
@@ -7,25 +8,34 @@ config = Config()
 calendars = Calendars()
 
 
-def index(request):
-    message = config.FLOW['message']
-    print(message)
-    context = {'link': message[47:80], 'code': message[100:109]}
-    return render(request, 'index.html', context)
+class Login(APIView):
+    @staticmethod
+    def get(request):
+        message = config.FLOW['message']
+        print(message)
+        return Response({'link': message[47:80], 'code': message[100:109]})
 
 
-def calendar(request):
-    if config.ACCESS_TOKEN == '':
-        app = config.APP
-        flow = config.FLOW
-        config.ACCESS_TOKEN = app.acquire_token_by_device_flow(flow=flow)['access_token']
-        GetAllCalendars({'Authorization': 'Bearer ' + config.ACCESS_TOKEN})
+class AccessToken(APIView):
+    @staticmethod
+    def get(request):
+        return Response(config.ACCESS_TOKEN)
 
-    context = GetCalendarThisWeak({
-        'Authorization': 'Bearer ' + config.ACCESS_TOKEN,
-        'Prefer': 'outlook.timezone="Asia/Yekaterinburg"'}
-    )
-    return render(request, 'calendar.html', context)
+
+class Calendar(APIView):
+    @staticmethod
+    def get(request):
+        if config.ACCESS_TOKEN == '':
+            app = config.APP
+            flow = config.FLOW
+            config.ACCESS_TOKEN = app.acquire_token_by_device_flow(flow=flow)['access_token']
+            GetAllCalendars({'Authorization': 'Bearer ' + config.ACCESS_TOKEN})
+
+        context = GetCalendarThisWeak({
+            'Authorization': 'Bearer ' + config.ACCESS_TOKEN,
+            'Prefer': 'outlook.timezone="Asia/Yekaterinburg"'}
+        )
+        return Response(context)
 
 
 def GetAllCalendars(headers):
@@ -52,12 +62,11 @@ def GetCalendarThisWeak(headers, room=calendars.orange):
         f"https://graph.microsoft.com/v1.0/me/calendars/{room_id}/calendarView?startdatetime={start_datatime.isoformat()}&enddatetime={end_datetime.isoformat()}",
         headers=headers)
     print(response.ok)
-    output = GetOutputJSON(response.json(), start_datatime, room)
-    return output
+    return GetOutputDict(response.json(), start_datatime, room)
 
 
-def GetOutputJSON(content, start_datatime, room):
-    output_json = {"name": room['name'], "calendar": []}
+def GetOutputDict(content, start_datatime, room):
+    output_dict = {"name": room['name'], "calendar": []}
     for i in range(0, 7):
         current_day = start_datatime + timedelta(days=i)
         current_day_str = str(current_day).partition(' ')[0]
@@ -83,6 +92,6 @@ def GetOutputJSON(content, start_datatime, room):
                     "phone": phone
                 })
         current_day_obj = {"date": current_day_str, "meetings": meetings}
-        output_json["calendar"].append(current_day_obj)
-    print(output_json)
-    return output_json
+        output_dict["calendar"].append(current_day_obj)
+    print(output_dict)
+    return output_dict

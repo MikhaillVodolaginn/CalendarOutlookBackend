@@ -15,10 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from calendarApp.views import index, calendar
+from calendarApp.views import Login, AccessToken, Calendar
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", index),
-    path("calendar/", calendar)
+    path("api/v1/accessToken", AccessToken.as_view()),
+    path("api/v1/login/", Login.as_view()),
+    path("api/v1/calendar/", Calendar.as_view())
 ]
