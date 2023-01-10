@@ -11,31 +11,49 @@ calendars = Calendars()
 class Login(APIView):
     @staticmethod
     def get(request):
-        message = config.FLOW['message']
-        print(message)
-        return Response({'link': message[47:80], 'code': message[100:109]})
-
-
-class AccessToken(APIView):
-    @staticmethod
-    def get(request):
-        return Response(config.ACCESS_TOKEN)
-
-
-class Calendar(APIView):
-    @staticmethod
-    def get(request):
         if config.ACCESS_TOKEN == '':
-            app = config.APP
-            flow = config.FLOW
-            config.ACCESS_TOKEN = app.acquire_token_by_device_flow(flow=flow)['access_token']
-            GetAllCalendars({'Authorization': 'Bearer ' + config.ACCESS_TOKEN})
+            message = config.FLOW['message']
+            print(message)
+            return Response({'hasToken': 'false', 'link': message[47:80], 'code': message[100:109]})
+        return Response({'hasToken': 'true'})
 
-        context = GetCalendarThisWeak({
-            'Authorization': 'Bearer ' + config.ACCESS_TOKEN,
-            'Prefer': 'outlook.timezone="Asia/Yekaterinburg"'}
-        )
-        return Response(context)
+
+class Orange(APIView):
+    @staticmethod
+    def get(request):
+        return Response(GetCalendar(calendars.orange))
+
+
+class Green(APIView):
+    @staticmethod
+    def get(request):
+        return Response(GetCalendar(calendars.green))
+
+
+class Red(APIView):
+    @staticmethod
+    def get(request):
+        return Response(GetCalendar(calendars.red))
+
+
+class Yellow(APIView):
+    @staticmethod
+    def get(request):
+        return Response(GetCalendar(calendars.yellow))
+
+
+def GetCalendar(room):
+    if config.ACCESS_TOKEN == '':
+        app = config.APP
+        flow = config.FLOW
+        config.ACCESS_TOKEN = app.acquire_token_by_device_flow(flow=flow)['access_token']
+        GetAllCalendars({'Authorization': 'Bearer ' + config.ACCESS_TOKEN})
+
+    context = GetCalendarThisWeak({
+        'Authorization': 'Bearer ' + config.ACCESS_TOKEN,
+        'Prefer': 'outlook.timezone="Asia/Yekaterinburg"'},
+        room)
+    return context
 
 
 def GetAllCalendars(headers):
@@ -71,6 +89,7 @@ def GetOutputDict(content, start_datatime, room):
         current_day = start_datatime + timedelta(days=i)
         current_day_str = str(current_day).partition(' ')[0]
         meetings = []
+        print(content)
         for value in content["value"]:
             current_start = value["start"]["dateTime"].partition('T')
             current_start_day = current_start[0]
