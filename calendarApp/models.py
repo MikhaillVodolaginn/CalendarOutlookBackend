@@ -1,6 +1,3 @@
-from datetime import tzinfo, timedelta
-
-from django.db import models
 from msal import PublicClientApplication
 
 
